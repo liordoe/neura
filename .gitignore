@@ -1,0 +1,4 @@
+node_modules/*
+.jsbeautifyrc
+.env
+.idea/*
