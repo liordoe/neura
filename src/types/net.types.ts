@@ -4,25 +4,28 @@ import {LastLayer, Layer} from "../lib/network/layer";
 export type NeuroInputsType = Array<number>;
 export type NeuroWeightsType = Array<number>;
 
-export type INetOptions = Array<number>;
+export type INetOptions = Array<number | Layer | LastLayer>;
 export type NetTeacherType = Object & {
-    correct: number;
     factor: number;
+    eps?:number;
 };
 
 export type NeuronInfoType = Object & {
-    value: number;
+    id?;
+    value?: number;
     weights: NeuroWeightsType;
-    inputs: NeuroInputsType;
-    error: number;
+    inputs?: NeuroInputsType;
+    error?: number;
 };
 
 export type LayerInfoType = Object & {
+    id?;
     depth: number;
     neurons: Array<NeuronInfoType>;
 };
 
 export type NetInfoType = Object & {
+    id?;
     depth: number;
     layers: Array<LayerInfoType>;
 };

@@ -1,22 +1,16 @@
 import * as express from "express";
-import {TEST_DATA_PATH} from "../../config";
-import * as fs from 'fs';
+import NetworkController from "../controllers/NetworkController";
 
 const ApiRouter = express.Router();
-// ApiRouter.get('/current', function(req, res) {
-//     NET.calculate(INPUTS);
-//     res.json(NET.info());
-// });
-//
-// ApiRouter.get('/learn', function(req, res) {
-//     NET.learn(Array(1000).fill(INPUTS), {correct: 1, factor: 1});
-//     res.json(NET.info());
-// });
-//
-// ApiRouter.get('/learn/once', function(req, res) {
-//     NET.learnIteration(INPUTS, {correct: 1, factor: 1});
-//     res.json(NET.info());
-// });
+
+ApiRouter.get('/net/', NetworkController.getAll);
+ApiRouter.get('/net/:id', NetworkController.getSingle);
+ApiRouter.put('/net', NetworkController.update);
+ApiRouter.post('/net', NetworkController.create);
+ApiRouter.get('/learn/:id', NetworkController.learn);
+ApiRouter.get('/learn/once/:id', NetworkController.learnOnce);
+ApiRouter.get('/data', NetworkController.data);
+ApiRouter.get('/test/:id', NetworkController.test);
 
 ApiRouter.get('/data', function(req, res) {
     res.send('respond with a resource');

@@ -8,16 +8,29 @@ export class Layer implements ILayer {
     protected _depth: number;
     protected _neurons: Array<Neuron>;
     protected _net: Net;
+    public id;
 
-    constructor(index: number, depth: number, net: Net) {
+    constructor(index?: number, depth?: number, net?: Net, neurons: Array<Neuron> = []) {
         this._index = index;
         this._depth = depth;
-        this._neurons = [];
         this._net = net;
-        for (let i = 0; i < depth; i++) {
-            this._neurons.push(new Neuron(this, i));
+
+        if (!neurons.length) {
+            this._neurons = [];
+            for (let i = 0; i < depth; i++) {
+                this._neurons.push(new Neuron(this, i));
+            }
+        } else {
+            this._neurons = neurons.map((n, i) => {
+                return n.setLayer(this, i);
+            });
+            this._depth = neurons.length;
         }
         log(`created Layer #${this._index}, with ${this._depth} neurons allowed`);
+    }
+
+    get isLayer() {
+        return true;
     }
 
     get index() {
@@ -43,9 +56,10 @@ export class Layer implements ILayer {
         this.neurons.forEach((n, i) => {
             let weights = [], message = ' ';
             n.error = layer.errors.reduce((res, err, j) => {
-                weights.push(layer.neurons[j].weights[i]);
-                message += `${err} * ${layer.neurons[j].weights[i]} + `;
-                return res + ( err * layer.neurons[j].weights[i] )
+                const currentWeight = layer.neurons[j].weights[i];
+                weights.push(currentWeight);
+                message += `${err} * ${currentWeight} + `;
+                return res + ( err * currentWeight )
             }, 0);
             log(`calculated ${message.slice(0, -3)}, result: ${n.error}, neuron ${i}, layer ${this.index}, weights ${weights}`);
         });
@@ -59,6 +73,14 @@ export class Layer implements ILayer {
         return this;
     }
 
+    setNet(net: Net, index: number, id?) {
+        this._net = net;
+        this._index = index;
+        this._depth = this._neurons.length;
+        this.id = id;
+        return this;
+    }
+
     calculate() {
         return this._neurons.map(neuron => {
            return neuron.activation();
@@ -67,6 +89,7 @@ export class Layer implements ILayer {
 
     info(): LayerInfoType {
         return {
+            id: this.id,
             depth: this._depth,
             neurons: this._neurons.map(n => n.info())
         };
@@ -75,8 +98,8 @@ export class Layer implements ILayer {
 
 export class LastLayer extends Layer {
     private _neuron;
-    constructor(index: number, net: Net) {
-        super(index, 1, net);
+    constructor(index: number, net: Net, neuron?: Neuron) {
+        super(index, 1, net, neuron ? [neuron] : []);
         this._neuron = this._neurons[0];
     }
 

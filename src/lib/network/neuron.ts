@@ -1,21 +1,31 @@
 import * as _ from 'lodash';
 import {Layer} from "./layer";
 import {log} from "../../server/services/utils";
-import {NeuronInfoType, INeuron} from "../../types/net.types";
+import {NeuronInfoType, INeuron, NeuroWeightsType, NeuroInputsType} from "../../types/net.types";
 
-const BIAS = 1;
+const BIAS = 0;
 
 export class Neuron implements INeuron {
-    private _weights: Array<number>;
-    private _inputs: Array<number>;
+    private _weights: NeuroWeightsType;
+    private _inputs: NeuroInputsType;
     private _layer: Layer;
     private _index: number;
+    public id;
     error: number;
 
-    constructor(layer, index) {
+    constructor(layer?, index?, weights: NeuroWeightsType = [], id?) {
         this._layer = layer;
         this._index = index;
+        this.id = id;
+
+        if (weights.length) {
+            this._weights = weights;
+        }
         // log(`created new Neuron #${this._index}`);
+    }
+
+    get isNeuron() {
+        return true;
     }
 
     get weights(): Array<number> {
@@ -48,10 +58,10 @@ export class Neuron implements INeuron {
 
     info(): NeuronInfoType {
         return {
+            id: this.id,
             value: this._inputs ? this.activation() : undefined,
             error: this.error,
             weights: this.weights,
-            inputs: this.inputs,
         };
     }
 
@@ -64,9 +74,16 @@ export class Neuron implements INeuron {
 
         this._weights = this.weights.map((w, i) => {
             const out = w + factor * this.error * dfde * this._inputs[i];
-            log(`updated weight ${i} ${out} (was ${w}), neuron ${this._index}, layer ${this._layer.index}, error ${this.error}, f ${dfde}, input ${i}, ${this._inputs[i]}`);
+            log(`updated weight ${i} ${out} (was ${w}), neuron ${this.activation()}, error ${this.error}, f ${dfde}, input ${i}, ${this._inputs[i]}`);
             return out;
         });
+    }
+
+    setLayer(layer: Layer, index: number, id?) {
+        this._layer = layer;
+        this._index = index;
+        this.id = id || this.id;
+        return this;
     }
 
     private generateWeights(length, weigths: Array<number> = []): void {
