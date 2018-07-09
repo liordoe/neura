@@ -26,6 +26,7 @@ export type LayerInfoType = Object & {
 
 export type NetInfoType = Object & {
     id?;
+    learning?: boolean;
     depth: number;
     layers: Array<LayerInfoType>;
 };

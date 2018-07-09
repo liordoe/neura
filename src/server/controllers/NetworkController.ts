@@ -1,11 +1,10 @@
 import {Net} from "../../lib/network/net";
 import {NetworkRepository} from "../repositories/NetworkRepository";
 import {Schema} from "mongoose";
-import {TEST_DATA_PATH, TRAIN_DATA_PATH} from "../../config";
+import {LearningNets, TEST_DATA_PATH, TRAIN_DATA_PATH} from "../../config";
 import {inputsFromFile} from "../services/utils";
 import * as _ from 'lodash';
 import InputsHandler from "../services/InputsHandler";
-import {ifError} from "assert";
 
 export default class NetworkController {
     public static async create(req, res) {
@@ -39,12 +38,30 @@ export default class NetworkController {
     public static async update(req, res) {
         try {
             const {body} = req;
+            if (LearningNets.includes(body.id)) {
+                throw Error(`Can't update learning net`);
+            }
             await NetworkRepository.updateNetwork(body);
             const net = await NetworkRepository.getNetwork(body.id);
             return res.json(net);
         } catch (err) {
             console.log(err);
-            return res.status(500).send(err);
+            return res.status(500).send(err.toString());
+        }
+    }
+
+    public static async clear(req, res) {
+        try {
+            const {params: {id}} = req;
+            if (LearningNets.includes(id)) {
+                throw Error(`Can't clear learning net`);
+            }
+            await NetworkRepository.clearWeights(id);
+            const net = await NetworkRepository.getNetwork(id);
+            return res.json(net);
+        } catch (err) {
+            console.log(err);
+            return res.status(500).send(err.toString());
         }
     }
 
@@ -60,7 +77,6 @@ export default class NetworkController {
     public static async learn(req, res) {
         try {
             let {params: {id}, query: {start = 0, limit = 50000, iterations = 50000, eps = 0.0001, perVector = 100}} = req;
-
             if ([limit, iterations, eps, perVector, start].some(isNaN)) {
                 throw new Error('inputs error, all query parameters should be numbers');
             }
@@ -87,12 +103,12 @@ export default class NetworkController {
             if (!select.length) {
                 return res.send(net.info());
             }
-            res.json(inputs.slice(start, limit).map(i => i.join(',')));
 
             net.learn(select, {
                 eps,
                 factor: 1,
             }, iterations, perVector);
+            res.json(inputs.slice(start, limit).map(i => i.join(',')));
 
             await NetworkRepository.updateNetwork(net.info());
             return;
@@ -105,6 +121,9 @@ export default class NetworkController {
     public static async learnOnce(req, res) {
         try {
             let {params: {id}, query: {vector}} = req;
+            if (LearningNets.includes(id)) {
+                throw new Error(`Can't run two learn processes for one net`);
+            }
 
             const preNet = await NetworkRepository.getNetwork(id);
             if (!preNet) {

@@ -1,0 +1,15 @@
+.nets-list {
+  .net-list-element {
+    display: flex;
+
+    .id, .depth {
+      flex: 1;
+    }
+
+    .buttons {
+      flex: 3;
+      display: flex;
+      justify-content: flex-end;
+    }
+  }
+}

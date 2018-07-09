@@ -12,3 +12,4 @@ export const OPTS = stdio.getopt({
 export const DEBUG: boolean = +OPTS.debug === 1;
 export const TEST_DATA_PATH = path.join(process.cwd(), 'data/NSL-KDD/KDDTest+.txt');
 export const TRAIN_DATA_PATH = path.join(process.cwd(), 'data/NSL-KDD/KDDTrain+.txt');
+export let LearningNets = [];

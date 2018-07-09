@@ -1,0 +1,20 @@
+#main-page-block {
+  $nav-height: 60px;
+  .navbar {
+    margin-bottom: 0;
+    height: $nav-height;
+  }
+
+  .main-container {
+    height: calc(100vh - 60px);
+    padding-top: 20px;
+    width: 80vw;
+    margin: 0 10vw;
+  }
+
+  .no-content {
+    width: 100%;
+    text-align: center;
+    font-size: 24px;
+  }
+}

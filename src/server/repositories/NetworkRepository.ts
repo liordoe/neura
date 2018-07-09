@@ -1,3 +1,4 @@
+import * as mongoose from 'mongoose';
 import {INet, NetInfoType} from "../../types/net.types";
 import {Net} from "../models/NetModel";
 import {ILayerModel, Layer} from "../models/LayerModel";
@@ -6,32 +7,13 @@ import {Neuron} from "../models/NeuronModel";
 export class NetworkRepository {
     public static async createNetwork(net: INet) {
         const tmp = net.info();
-        const layers = await this.saveLayers(tmp.layers);
+        const layers = await this.updateLayers(tmp.layers);
         let preSaveNet = {
             depth: tmp.depth,
             layers: layers
         };
         const network = await new Net(preSaveNet);
         return network.save();
-    }
-
-    public static async saveNeurons(neurons) {
-        return Promise.all(neurons.map(async n => {
-            const neuron = await new Neuron({
-                weigths: n.weights
-            }).save();
-            return neuron.id;
-        }));
-    }
-
-    public static async saveLayers(layers) {
-        return Promise.all(layers.map(async l => {
-            const layer = await new Layer({
-                depth: l.depth,
-                neurons: await this.saveNeurons(l.neurons)
-            }).save();
-            return layer.id;
-        }));
     }
 
     public static async getNetwork(id): Promise<NetInfoType> {
@@ -60,33 +42,61 @@ export class NetworkRepository {
             $set: {
                 depth: net.depth
             }
+        }, {
+            upsert: true,
+            new: true
         });
     }
 
     public static async updateLayers(layers) {
         return Promise.all(layers.map(async l => {
-            if (!l.id) {
-                return this.saveLayers([l]);
-            }
             await this.updateNeurons(l.neurons);
-            return Layer.update({_id: l.id}, {
+            return Layer.findOneAndUpdate({
+                _id: {
+                    $exists: true,
+                    $eq: mongoose.Types.ObjectId(l.id),
+                }
+            }, {
                 $set: {
                     depth: l.depth,
                 }
+            }, {
+                upsert: true,
+                new: true
             });
         }));
     }
 
     public static async updateNeurons(neurons) {
         return Promise.all(neurons.map(async n => {
-            if (!n.id) {
-                return this.saveNeurons([n]);
-            }
-            return Neuron.update({_id: n.id}, {
+            return Neuron.findOneAndUpdate({
+                _id: {
+                    $exists: true,
+                    $eq: mongoose.Types.ObjectId(n.id),
+                }
+            }, {
                 $set: {
                     weights: n.weights,
+                    value: n.value
                 }
+            }, {
+                upsert: true,
+                new: true
             });
         }));
+    }
+
+    public static async clearWeights(id) {
+        const net = await this.getNetwork(id);
+        await Promise.all(
+            net.layers.map(async l => {
+                const neurons = l.neurons.map(n => {
+                    n.weights = [];
+                    return n;
+                });
+                return this.updateNeurons(neurons);
+            })
+        );
+        return;
     }
 }

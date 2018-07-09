@@ -1,11 +1,37 @@
 {
-  "compilerOptions": {
-    "outDir": "./dist",
-    "allowJs": true,
-    "target": "es5",
-    "lib": ["es5", "dom", "dom.iterable", "es2015"]
-  },
   "include": [
     "./src/**/*"
-  ]
+  ],
+  "exclude": [
+    "./assets",
+    "./doc",
+    "./kubefiles",
+    "./node_modules",
+    "./out",
+    "./resources",
+    "./run",
+    "./tmp"
+  ],
+  "compilerOptions": {
+    "outDir": "./dist",
+    "baseUrl": "./src",
+    "paths": {
+      "public/*": [ "public/*"],
+      "server/*": [ "server/*" ]
+    },
+    "jsx": "react",
+    "allowJs": false,
+    "target": "es5",
+    "lib": ["es7", "dom", "dom.iterable", "es2017"]
+  },
+  "declaration": true,
+  "experimentalDecorators": true,
+  "jsx": "react",
+  "module": "commonjs",
+  "moduleResolution": "node",
+  "noImplicitAny": false,
+  "preserveConstEnums": true,
+  "removeComments": true,
+  "sourceMap": true,
+  "suppressImplicitAnyIndexErrors": true
 }

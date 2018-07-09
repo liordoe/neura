@@ -1,0 +1,29 @@
+#net {
+  .json {
+    padding: 0;
+    border: none;
+    transition: max-height .3s ease-in-out;
+  }
+
+  .info {
+    display: flex;
+
+    .id, .depth, .layers {
+      flex: 1;
+    }
+
+    .buttons {
+      flex: 3;
+      display: flex;
+      justify-content: flex-end;
+    }
+  }
+
+  .layers-list {
+    margin-top: 15px;
+  }
+
+  .toggle-json {
+    margin: 10px 0;
+  }
+}

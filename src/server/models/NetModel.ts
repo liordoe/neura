@@ -10,6 +10,7 @@ export interface INetModel extends INet, Document {}
 
 export const NetSchema: Schema = new BasicSchema({
     depth: Number,
+    learning: Boolean,
     layers: [{
         type: Schema.Types.ObjectId,
         ref: 'Layer'

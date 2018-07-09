@@ -2,11 +2,13 @@ import {Layer, LastLayer} from "./layer";
 import {Neuron} from "./neuron";
 import {log} from "../../server/services/utils";
 import {INet, NetInfoType, NetTeacherType, NeuroInputsType, INetOptions} from "../../types/net.types";
-import {error} from "util";
+import {NetworkRepository} from "../../server/repositories/NetworkRepository";
+import {LearningNets} from "../../config";
 
 export class Net implements INet {
     private _layers: Array<Layer | LastLayer>;
     public id;
+    private isLearning = false;
 
     constructor(options: INetOptions = []) {
         if (!options.length) {
@@ -60,6 +62,7 @@ export class Net implements INet {
     info(): NetInfoType {
         return {
             id: this.id,
+            learning: this.isLearning,
             depth: this._layers.length,
             layers: this._layers.map(l => l.info()),
         };
@@ -77,22 +80,42 @@ export class Net implements INet {
         return layer.calculate()[0];
     }
 
-    learn(inputs: Array<NeuroInputsType>, teacher: NetTeacherType, limit = Number.MAX_VALUE, limitPV = 100): Net {
-        let i = 0;
-        const { eps = 0.1 } = teacher;
-        console.log('learn function starts');
-        while (i < limit) {
-            for (let input of inputs) {
-                let diff = 1, j = 0;
-                while(diff > eps && j < limitPV) {
-                    diff = this.learnIteration(input, teacher);
-                    j++;
-                    i++;
-                }
-                i % 1000 === 0 && console.log(`${i} learning iterations ago`);
-            }
+    learn(
+        inputs: Array<NeuroInputsType>,
+        teacher: NetTeacherType,
+        limit = Number.MAX_VALUE,
+        limitPV = 100
+    ): Net {
+        if (LearningNets.includes(this.id)) {
+            throw new Error(`Can't run two learn processes for one net`);
         }
-        console.log(`${i} iteractions of learning ago`);
+        let i = 0;
+        const { eps } = teacher;
+        console.log('learn function starts');
+        this.isLearning = true;
+        this.id && LearningNets.push(this.id);
+        let self = this;
+        (async function() {
+            while (i < limit) {
+                for (let input of inputs) {
+                    let diff = 1, j = 0;
+                    while(diff > eps && j < limitPV) {
+                        await new Promise(resolve => {
+                            setImmediate(function() {
+                                diff = self.learnIteration(input, teacher);
+                                j++;
+                                i++;
+                                if (i % 1000 === 0) {
+                                    NetworkRepository.updateNetwork(self.info());
+                                }
+                                i % (limit / 10) === 0 && console.log(`${i / limit * 100}% of learning for ${self.id} is done`);
+                                resolve();
+                            });
+                        });
+                    }
+                }
+            }
+        })();
         return this;
     }
 

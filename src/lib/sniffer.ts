@@ -5,8 +5,8 @@ export default function sniffer() {
 
     var c = new Cap();
     const deviceList = Cap.deviceList();
-    console.log('deviceList', deviceList);
-    var device = Cap.findDevice(deviceList[0].addresses[0].addr);
+    // console.log('deviceList', deviceList);
+    var device = Cap.findDevice(deviceList[4].addresses[0].addr);
     var filter = 'tcp and dst port 80';
     var bufSize = 10 * 1024 * 1024;
     var buffer = Buffer.alloc(65535);

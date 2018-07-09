@@ -5,6 +5,7 @@ const TO_JSON_OPTION = {
         virtuals: true,
         transform: function(doc, ret) {
             ret.id = doc._id.toHexString();
+            delete ret.__v;
             delete ret._id;
         }
     }
