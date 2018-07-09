@@ -94,8 +94,7 @@ export class Net implements INet {
         console.log('learn function starts');
         this.isLearning = true;
         this.id && LearningNets.push(this.id);
-        let self = this;
-        (async function() {
+        (async function(self) {
             while (i < limit) {
                 for (let input of inputs) {
                     let diff = 1, j = 0;
@@ -115,7 +114,7 @@ export class Net implements INet {
                     }
                 }
             }
-        })();
+        })(this);
         return this;
     }
 
